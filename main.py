@@ -42,7 +42,7 @@ def main() -> int:
         "--audio-quality", "0",
         "--embed-metadata",
         "--download-archive", str(archive),
-        "--output", str(output / "%(playlist_title, title)s" / "%(playlist_index)03d - %(title)s.%(ext)s"),
+        "--output", str(output / "%(playlist_index)03d - %(title)s.%(ext)s"),
         "--windows-filenames",
         "--trim-filenames", "180",
         args.url,
