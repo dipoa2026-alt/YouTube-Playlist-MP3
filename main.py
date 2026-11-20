@@ -49,11 +49,22 @@ def main() -> int:
     ]
     print("Starting audio extraction. Files will be saved under:", output.resolve(), flush=True)
     try:
-        subprocess.run(command, check=False)
+        result = subprocess.run(command, check=False)
     except KeyboardInterrupt:
         print("Interrupted by user.", file=sys.stderr)
         return 130
-    return 0
+
+    mp3_files = list(output.rglob("*.mp3"))
+    if not mp3_files:
+        print(
+            "ERROR: yt-dlp did not produce any MP3 files. "
+            "Check the workflow logs; YouTube may be requiring sign-in or blocking the runner.",
+            file=sys.stderr,
+        )
+        return result.returncode or 1
+
+    print(f"Successfully created {len(mp3_files)} MP3 file(s).", flush=True)
+    return result.returncode
 
 
 if __name__ == "__main__":
