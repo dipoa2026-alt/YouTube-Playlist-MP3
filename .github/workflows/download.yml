@@ -35,14 +35,16 @@ jobs:
         run: python main.py --url "${{ inputs.playlist_url }}"
 
       - name: Package MP3 files
-        if: always()
+        if: success()
         run: |
-          if [ -d downloads ]; then
-            zip -r playlist-mp3.zip downloads -x "*/downloaded.txt"
+          if ! find downloads -type f -name '*.mp3' -print -quit | grep -q .; then
+            echo "No MP3 files were created; refusing to publish an empty archive."
+            exit 1
           fi
+          zip -r playlist-mp3.zip downloads -x "*/downloaded.txt"
 
       - name: Upload MP3 archive
-        if: always() && hashFiles('playlist-mp3.zip') != ''
+        if: success() && hashFiles('playlist-mp3.zip') != ''
         uses: actions/upload-artifact@v4
         with:
           name: playlist-mp3
