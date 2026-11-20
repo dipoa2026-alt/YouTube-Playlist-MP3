@@ -1,0 +1,51 @@
+name: Download playlist as MP3
+
+on:
+  workflow_dispatch:
+    inputs:
+      playlist_url:
+        description: "Playlist or video URL (use only content you are authorized to download)"
+        required: true
+        default: "https://www.youtube.com/playlist?list=PLTUMWmlKOvqaPvYe2Oq_N8OkTMxLjN6ol"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
+      - name: Install yt-dlp
+        run: python -m pip install --upgrade yt-dlp
+
+      - name: Download and convert playlist
+        run: python main.py --url "${{ inputs.playlist_url }}"
+
+      - name: Package MP3 files
+        if: always()
+        run: |
+          if [ -d downloads ]; then
+            zip -r playlist-mp3.zip downloads -x "*/downloaded.txt"
+          fi
+
+      - name: Upload MP3 archive
+        if: always() && hashFiles('playlist-mp3.zip') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: playlist-mp3
+          path: playlist-mp3.zip
+          if-no-files-found: warn
+          retention-days: 7
